@@ -94,6 +94,116 @@ csi-ntnx-plugin-rpk88                        2/2       Running   0          1h
 csi-provisioner-ntnx-plugin-0                2/2       Running   0          1h
 ```
 
+## Create a StorageClass
+
+### Nutanix Volumes
+
+#### Creating a Secret
+
+Create a secret for authentication.
+
+- You must create a nutanix user that will be manager the Volumes
+
+With the user created, run:
+
+`echo -n "<NTNX-IP>:9440:<USER>:<PASSWORD>" | base64`
+
+Where:
+- NTNX-IP: The Nutanix IP.
+- 9440: Nutanix Service Port, default is 9440.
+- USER:  Nutanix user.
+- PASSWORD: User password.
+
+**Replace the value of KEY field in file storageClass-ntnx-volumes.yaml with the result of the command**
+```
+apiVersion: v1
+kind: Secret
+metadata:
+ name: ntnx-secret
+ namespace: ntnx-storage
+ labels:
+    app.kubernetes.io/name: ntnx-plugin
+    app.kubernetes.io/part-of: csi-ntnx-plugin
+data:
+ # base64 encoded prism-ip:prism-port:admin:password.
+ # E.g.: echo -n "<NTNX-IP>:9440:<USER>:<PASSWORD>" | base64
+ key: MTAuOC4djddlslkfpenmesJlcm5ldGVzOnRyaWJ1bmFsX2t1YmVybmV0ZXM=++1
+```
+#### Managing Storage
+
+After that, you must reclace the follows fields:
+
+```
+kind: StorageClass
+apiVersion: storage.k8s.io/v1
+metadata:
+   name: volume-ntnx
+   labels:
+    app.kubernetes.io/name: ntnx-plugin
+    app.kubernetes.io/part-of: csi-ntnx-plugin
+provisioner: com.nutanix.csi
+parameters:   
+   csi.storage.k8s.io/provisioner-secret-name:  ntnx-secret
+   csi.storage.k8s.io/provisioner-secret-namespace: ntnx-storage   
+   csi.storage.k8s.io/node-publish-secret-namespace: ntnx-storage
+   csi.storage.k8s.io/node-publish-secret-name: ntnx-secret   
+   dataServiceEndPoint: <NTNX-IP>:9440
+   storageContainer: <NTNX-VOLUME>
+   storageType: NutanixVolumes
+   description: "Persistent Volume in Nutanix Environments"   
+   csi.storage.k8s.io/fstype: ext4
+reclaimPolicy: Retain
+```
+  - csi.storage.k8s.io/provisioner-secret-name: The secret name.
+  - csi.storage.k8s.io/provisioner-secret-namespace: the secret namespace.
+  - csi.storage.k8s.io/node-publish-secret-namespace: ntnx-storage
+  - csi.storage.k8s.io/node-publish-secret-name: ntnx-secret   
+  - dataServiceEndPoint: The nutanix IP and Port **NTNX-IP:9440**
+  - storageContainer: Storage container in nutanix.
+  - storageType: The storage type.
+  - description: A simple description.
+  - csi.storage.k8s.io/fstype: The filesystem type.
+  - reclaimPolicy: Reclaim policy, < Delete or Retain >.
+
+Afte the configuration run:
+
+`# kubectl create -f storageClass-ntnx-volumes.yaml`
+
+Verify the storage class that you specified
+
+`# kubectl get storageclass`
+
+### Nutanix Files
+
+#### Managing Storage
+```
+kind: StorageClass
+apiVersion: storage.k8s.io/v1
+metadata:
+   name: volume-ntnx-nfs
+   annotations:
+        storageclass.kubernetes.io/is-default-class: "false"
+   labels:
+    app.kubernetes.io/name: ntnx-plugin
+    app.kubernetes.io/part-of: csi-ntnx-plugin
+provisioner: com.nutanix.csi
+parameters:     
+   nfsServer: <NTNX-IP>
+   nfsPath: <NTNX-files-export>   
+reclaimPolicy: Retain
+```
+  - nfsServer: The nutanix ip
+  - nfsPath: The nutanix files export
+  - reclaimPolicy: Reclaim policy, < Delete or Retain >.
+  
+Afte the configuration run:
+
+`# kubectl create -f storageClass-ntnx-volumes.yaml`
+
+Verify the storage class that you specified
+
+`# kubectl get storageclass`
+
 
 # References
 https://portal.nutanix.com/#/page/docs/details?targetId=CSI-Volume-Driver-v10:CSI-Volume-Driver-v10
