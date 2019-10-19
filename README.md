@@ -25,21 +25,23 @@ Make sure the following prerequisites are met before deploying the CSI Volume Dr
 
 # Installing
 
-## Deploying Service Accounts
-To deploy the CSI Volume Driver, you must create three service accounts, create three cluster roles, and then bind the cluster roles to the service accounts. Binding the cluster roles authorizes the service accounts. All of these steps are performed by running the ntnx-csi-rbac.yaml file.
+## Deploying Mandatory Resources
+To deploy the CSI Volume Driver, you must create:
 
-The CSI Volume Driver uses these service accounts to perform read, create, update, and delete actions on PersistentVolumeClaims (PVC), PersistentVolumes (PVs), StorageClasses, and events.
+- Service accounts, create three cluster roles, and then bind the cluster roles to the service accounts
+- StatefulSet and a DaemonSet
+ 
 
-
+### Clone the repository
 ```
 # git clone git@github.com:georgesouzafarias/nutanix-k8s-csi.git
 
-# cd ./nutanix-k8s-csi/mandatory/
+# cd ./nutanix-k8s-csi/
 ```
 
-Run the Kubernetes command to create ServiceAccounts, ClusterRole, and ClusterRole binding with the ntnx-csi-rbac.yaml file.
+Run the Kubernetes create command to create ServiceAccounts, ClusterRole, and ClusterRole, StatefulSet and DaemonSet.
 
-`# kubectl create -f ntnx-csi-rbac.yaml`
+`# kubectl create -f mandatory/`
 
 
 Fot confirmation that you created the ServiceAccounts successfully.
@@ -77,6 +79,21 @@ csi-attacher-role            1m
 csi-ntnx-plugin              1m
 csi-provisioner-role         1m
 ```
+Confirm that the deployment files are running.
+
+`kubectl get pods -n kube-system`
+
+The output will display five instances to confirm that the deployment was successful:
+
+```
+NAME                                         READY     STATUS    RESTARTS   AGE
+csi-attacher-ntnx-plugin-0                   2/2       Running   0          1h
+csi-ntnx-plugin-4xqfh                        2/2       Running   0          1h
+csi-ntnx-plugin-gt742                        2/2       Running   0          1h
+csi-ntnx-plugin-rpk88                        2/2       Running   0          1h
+csi-provisioner-ntnx-plugin-0                2/2       Running   0          1h
+```
+
 
 # References
 https://portal.nutanix.com/#/page/docs/details?targetId=CSI-Volume-Driver-v10:CSI-Volume-Driver-v10
