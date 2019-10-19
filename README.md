@@ -205,5 +205,42 @@ Verify the storage class that you specified
 `# kubectl get storageclass`
 
 
+# Test
+
+For test proposes, We will create a PVC(PersistentVolumeClaim).
+
+## Ntnx-Volume test:
+```
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+   name: test-volume-pvc
+spec:
+   accessModes:
+      - ReadWriteOnce
+   resources:
+      requests:
+         storage: 1Gi
+   storageClassName: volume-ntnx
+```
+`kubectl apply -f test/teste-volumes-pvc.yaml`
+
+## Ntnx-Files test:
+```
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+   name: test-files-pvc
+spec:
+   accessModes:
+      - ReadWriteOnce
+   resources:
+      requests:
+         storage: 1Gi
+   storageClassName: volume-ntnx-nfs
+```
+
+`kubectl apply -f test/teste-files-pvc.yaml`
+
 # References
 https://portal.nutanix.com/#/page/docs/details?targetId=CSI-Volume-Driver-v10:CSI-Volume-Driver-v10
