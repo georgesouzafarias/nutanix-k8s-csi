@@ -1,0 +1,46 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ntnx-storage
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+ name: ntnx-secret
+ namespace: ntnx-storage
+ labels:
+    app.kubernetes.io/name: ntnx-plugin
+    app.kubernetes.io/part-of: csi-ntnx-plugin
+data:
+ # base64 encoded prism-ip:prism-port:admin:password.
+ # E.g.: echo -n "<NTNX-IP>:9440:<USER>:<PASSWORD>" | base64
+ key: MTAuOC4djddlslkfpenmesJlcm5ldGVzOnRyaWJ1bmFsX2t1YmVybmV0ZXM=++1
+
+---
+kind: StorageClass
+apiVersion: storage.k8s.io/v1
+metadata:
+   name: volume-ntnx
+   labels:
+    app.kubernetes.io/name: ntnx-plugin
+    app.kubernetes.io/part-of: csi-ntnx-plugin
+provisioner: com.nutanix.csi
+parameters:
+   #Will be deprecated
+   #csiProvisionerSecretName: ntnx-secret
+   csi.storage.k8s.io/provisioner-secret-name:  ntnx-secret
+   csi.storage.k8s.io/provisioner-secret-namespace: ntnx-storage
+   #Will be deprecated
+   #csiProvisionerSecretNamespace: ntnx-storage
+   #csiNodePublishSecretName: ntnx-secret      
+   csi.storage.k8s.io/node-publish-secret-namespace: ntnx-storage
+   csi.storage.k8s.io/node-publish-secret-name: ntnx-secret   
+   dataServiceEndPoint: <NTNX-IP>:9440
+   storageContainer: <NTNX-VOLUME>
+   storageType: NutanixVolumes
+   description: "Persistent Volume in Nutanix Environments"
+   #Will be deprecated
+   #fstype: ext4
+   csi.storage.k8s.io/fstype: ext4
+reclaimPolicy: Retain
